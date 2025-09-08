@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'home_view.dart';
-import 'members_view.dart';
+import 'news_view.dart';
+import 'club_view.dart';
 import 'competitions_view.dart';
 import 'my_touch_view.dart';
 import '../config/config_service.dart';
@@ -50,9 +50,9 @@ class _MainNavigationViewState extends State<MainNavigationView> {
   Widget _getViewForTab(TabConfig tab) {
     switch (tab.id) {
       case 'news':
-        return const HomeView(showOnlyNews: true);
+        return const NewsView(showOnlyNews: true);
       case 'clubs':
-        return const MembersView();
+        return const ClubView();
       case 'events':
         return _getEventsView(tab);
       case 'my_sport':

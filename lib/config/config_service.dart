@@ -192,19 +192,97 @@ class TabConfig {
   }
 }
 
+class NewsConfig {
+  final String rssUrl;
+  final int initialItemsCount;
+  final int infiniteScrollBatchSize;
+
+  NewsConfig({
+    required this.rssUrl,
+    this.initialItemsCount = 10,
+    this.infiniteScrollBatchSize = 5,
+  });
+
+  factory NewsConfig.fromJson(Map<String, dynamic> json) {
+    return NewsConfig(
+      rssUrl: json['rssUrl'] as String? ?? 'https://www.internationaltouch.org/news/feeds/rss/',
+      initialItemsCount: json['initialItemsCount'] as int? ?? 10,
+      infiniteScrollBatchSize: json['infiniteScrollBatchSize'] as int? ?? 5,
+    );
+  }
+}
+
+class ClubConfig {
+  final String navigationLabel;
+  final String titleBarText;
+  final List<String> allowedStatuses;
+  final List<String> excludedSlugs;
+  final Map<String, String> slugImageMapping;
+
+  ClubConfig({
+    this.navigationLabel = 'Clubs',
+    this.titleBarText = 'Clubs',
+    this.allowedStatuses = const ['active'],
+    this.excludedSlugs = const [],
+    this.slugImageMapping = const {},
+  });
+
+  factory ClubConfig.fromJson(Map<String, dynamic> json) {
+    return ClubConfig(
+      navigationLabel: json['navigationLabel'] as String? ?? 'Clubs',
+      titleBarText: json['titleBarText'] as String? ?? 'Clubs',
+      allowedStatuses: List<String>.from(json['allowedStatuses'] ?? ['active']),
+      excludedSlugs: List<String>.from(json['excludedSlugs'] ?? []),
+      slugImageMapping: Map<String, String>.from(json['slugImageMapping'] ?? {}),
+    );
+  }
+}
+
+class CompetitionConfig {
+  final List<String> excludedSlugs;
+  final List<String> excludedSeasonCombos;  // Format: "slug:season"
+  final List<String> excludedDivisionCombos;  // Format: "slug:season:division"
+  final Map<String, String> slugImageMapping;
+
+  CompetitionConfig({
+    this.excludedSlugs = const [],
+    this.excludedSeasonCombos = const [],
+    this.excludedDivisionCombos = const [],
+    this.slugImageMapping = const {},
+  });
+
+  factory CompetitionConfig.fromJson(Map<String, dynamic> json) {
+    return CompetitionConfig(
+      excludedSlugs: List<String>.from(json['excludedSlugs'] ?? []),
+      excludedSeasonCombos: List<String>.from(json['excludedSeasonCombos'] ?? []),
+      excludedDivisionCombos: List<String>.from(json['excludedDivisionCombos'] ?? []),
+      slugImageMapping: Map<String, String>.from(json['slugImageMapping'] ?? {}),
+    );
+  }
+}
+
 class FeaturesConfig {
   final String flagsModule;
   final String eventsVariant;
+  final NewsConfig news;
+  final ClubConfig clubs;
+  final CompetitionConfig competitions;
 
   FeaturesConfig({
     required this.flagsModule,
     required this.eventsVariant,
+    required this.news,
+    required this.clubs,
+    required this.competitions,
   });
 
   factory FeaturesConfig.fromJson(Map<String, dynamic> json) {
     return FeaturesConfig(
       flagsModule: json['flagsModule'] as String,
       eventsVariant: json['eventsVariant'] as String,
+      news: NewsConfig.fromJson(json['news'] ?? {}),
+      clubs: ClubConfig.fromJson(json['clubs'] ?? {}),
+      competitions: CompetitionConfig.fromJson(json['competitions'] ?? {}),
     );
   }
 }
@@ -255,5 +333,112 @@ class ConfigService {
   static Future<void> loadConfig(String configPath) async {
     _initialized = false;
     await initialize(configPath: configPath);
+  }
+
+  // Method for setting up test configuration
+  static void setTestConfig() {
+    _config = AppConfigData(
+      name: 'Test App',
+      displayName: 'Test App',
+      description: 'Test App Description',
+      identifier: {'android': 'com.test.app', 'ios': 'com.test.app'},
+      version: '1.0.0',
+      api: ApiConfig(
+        baseUrl: 'https://test.example.com/api/v1',
+        imageBaseUrl: 'https://test.example.com',
+      ),
+      branding: BrandingConfig(
+        primaryColor: BrandingConfig._parseColor('#1976D2'),
+        secondaryColor: BrandingConfig._parseColor('#FFC107'),
+        accentColor: BrandingConfig._parseColor('#4CAF50'),
+        errorColor: BrandingConfig._parseColor('#F44336'),
+        backgroundColor: BrandingConfig._parseColor('#FFFFFF'),
+        textColor: BrandingConfig._parseColor('#212121'),
+        logoVertical: 'assets/images/test-logo.png',
+        logoHorizontal: 'assets/images/test-logo.png',
+        appIcon: 'assets/images/test-icon.png',
+        splashScreen: SplashScreenConfig(
+          backgroundColor: BrandingConfig._parseColor('#1976D2'),
+          image: 'assets/images/test-logo.png',
+          imageBackgroundColor: BrandingConfig._parseColor('#1976D2'),
+        ),
+      ),
+      navigation: NavigationConfig(tabs: [
+        TabConfig(
+          id: 'news',
+          label: 'News',
+          icon: 'newspaper',
+          enabled: true,
+          backgroundColor: BrandingConfig._parseColor('#1976D2'),
+        ),
+        TabConfig(
+          id: 'clubs',
+          label: 'Members',
+          icon: 'public',
+          enabled: true,
+          backgroundColor: BrandingConfig._parseColor('#1976D2'),
+        ),
+        TabConfig(
+          id: 'events',
+          label: 'Events',
+          icon: 'sports',
+          enabled: true,
+          backgroundColor: BrandingConfig._parseColor('#1976D2'),
+        ),
+        TabConfig(
+          id: 'my_sport',
+          label: 'My Sport',
+          icon: 'star',
+          enabled: true,
+          backgroundColor: BrandingConfig._parseColor('#1976D2'),
+        ),
+      ]),
+      features: FeaturesConfig(
+        flagsModule: 'test',
+        eventsVariant: 'standard',
+        news: NewsConfig(
+          rssUrl: 'https://test.example.com/news/rss',
+          initialItemsCount: 10,
+          infiniteScrollBatchSize: 5,
+        ),
+        clubs: ClubConfig(
+          navigationLabel: 'Clubs',
+          titleBarText: 'Test Clubs',
+          allowedStatuses: ['active'],
+          excludedSlugs: [],
+          slugImageMapping: {},
+        ),
+        competitions: CompetitionConfig(
+          excludedSlugs: [
+            'home-nations',
+            'mainland-cup',
+            'asian-cup',
+            'test-matches',
+            'pacific-games',
+            'cardiff-touch-superleague',
+            'jersey-touch-superleague',
+          ],
+          excludedSeasonCombos: [
+            'world-cup:2018',
+            'euros:2016',
+          ],
+          excludedDivisionCombos: [
+            'world-cup:2022:womens-30',
+            'euros:2023:mens-40',
+          ],
+          slugImageMapping: {
+            'asia-pacific-youth-touch-cup': 'assets/images/competitions/APYTC.png',
+            'atlantic-youth-touch-cup': 'assets/images/competitions/AYTC.png',
+            'european-junior-touch-championships': 'assets/images/competitions/EJTC.png',
+            'euros': 'assets/images/competitions/ETC.png',
+          },
+        ),
+      ),
+      assets: AssetsConfig(
+        competitionImages: 'assets/images/competitions/',
+        flagsPath: 'lib/config/flags/test_flags.dart',
+      ),
+    );
+    _initialized = true;
   }
 }

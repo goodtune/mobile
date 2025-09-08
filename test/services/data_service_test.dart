@@ -6,6 +6,7 @@ import 'package:fit_mobile_app/services/data_service.dart';
 import 'package:fit_mobile_app/services/api_service.dart';
 import 'package:fit_mobile_app/services/database_service.dart';
 import 'package:fit_mobile_app/services/database.dart' show createTestDatabase;
+import 'package:fit_mobile_app/config/config_service.dart';
 import 'package:fit_mobile_app/models/news_item.dart';
 import 'package:fit_mobile_app/models/event.dart';
 
@@ -20,6 +21,9 @@ void main() {
     setUp(() {
       // Set up test database
       DatabaseService.setTestDatabase(createTestDatabase());
+
+      // Set up mock config for testing
+      ConfigService.setTestConfig();
 
       mockClient = MockClient();
       DataService.setHttpClient(mockClient);
@@ -53,7 +57,7 @@ void main() {
 </rss>''';
 
         when(mockClient.get(
-          Uri.parse('https://www.internationaltouch.org/news/feeds/rss/'),
+          Uri.parse('https://test.example.com/news/rss'),
           headers: anyNamed('headers'),
         )).thenAnswer((_) async => http.Response(rssXml, 200));
 
@@ -70,7 +74,7 @@ void main() {
 
       test('handles RSS feed failure gracefully', () async {
         when(mockClient.get(
-          Uri.parse('https://www.internationaltouch.org/news/feeds/rss/'),
+          Uri.parse('https://test.example.com/news/rss'),
           headers: anyNamed('headers'),
         )).thenAnswer((_) async => http.Response('Not Found', 404));
 
@@ -82,7 +86,7 @@ void main() {
 
       test('handles network timeout', () async {
         when(mockClient.get(
-          Uri.parse('https://www.internationaltouch.org/news/feeds/rss/'),
+          Uri.parse('https://test.example.com/news/rss'),
           headers: anyNamed('headers'),
         )).thenThrow(Exception('Connection timeout'));
 
@@ -94,7 +98,7 @@ void main() {
 
       test('handles malformed XML', () async {
         when(mockClient.get(
-          Uri.parse('https://www.internationaltouch.org/news/feeds/rss/'),
+          Uri.parse('https://test.example.com/news/rss'),
           headers: anyNamed('headers'),
         )).thenAnswer((_) async => http.Response('Invalid XML content', 200));
 
@@ -212,7 +216,7 @@ void main() {
         // Mock the competitions API call to return empty array
         when(mockClient.get(
           Uri.parse(
-              'https://www.internationaltouch.org/api/v1/competitions/?format=json'),
+              'https://test.example.com/api/v1/competitions/?format=json'),
           headers: anyNamed('headers'),
         )).thenAnswer((_) async => http.Response('[]', 200));
 

@@ -4,7 +4,7 @@ import 'package:fit_mobile_app/views/main_navigation_view.dart';
 import 'package:fit_mobile_app/views/competitions_view.dart';
 import 'package:fit_mobile_app/views/event_detail_view.dart';
 import 'package:fit_mobile_app/views/divisions_view.dart';
-import 'package:fit_mobile_app/views/home_view.dart';
+import 'package:fit_mobile_app/views/news_view.dart';
 import 'package:fit_mobile_app/theme/fit_theme.dart';
 import 'package:fit_mobile_app/models/event.dart';
 import 'package:fit_mobile_app/models/season.dart';
@@ -14,7 +14,8 @@ import 'package:http/http.dart' as http;
 import 'package:fit_mobile_app/services/data_service.dart';
 import 'package:fit_mobile_app/services/api_service.dart';
 import 'package:fit_mobile_app/services/database_service.dart';
-import 'package:fit_mobile_app/services/database.dart' show createTestDatabase;
+import 'package:fit_mobile_app/services/database.dart' show createTestDatabase, AppDatabase;
+import 'package:fit_mobile_app/config/config_service.dart';
 import 'package:fit_mobile_app/models/division.dart';
 import 'package:fit_mobile_app/views/fixtures_results_view.dart';
 
@@ -23,6 +24,11 @@ import 'navigation_test.mocks.dart';
 
 void main() {
   group('Navigation Tests', () {
+    setUp(() {
+      // Initialize ConfigService for all navigation tests
+      ConfigService.setTestConfig();
+    });
+
     Widget createTestApp({int initialTab = 0}) {
       return MaterialApp(
         theme: FITTheme.lightTheme,
@@ -39,8 +45,8 @@ void main() {
           tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar));
       expect(bottomNavBar.currentIndex, equals(0));
 
-      // Verify News content is visible (should show HomeView with news)
-      expect(find.byType(HomeView), findsOneWidget);
+      // Verify News content is visible (should show NewsView with news)
+      expect(find.byType(NewsView), findsOneWidget);
     });
 
     testWidgets('Should switch to Events tab when tapped',
@@ -230,7 +236,7 @@ void main() {
         await tester.tap(find.text('News'));
         await tester.pump();
         await tester.pump(const Duration(seconds: 1));
-        expect(find.byType(HomeView), findsOneWidget);
+        expect(find.byType(NewsView), findsOneWidget);
 
         // Switch back to Events tab
         await tester.tap(find.text('Events'));
@@ -278,6 +284,7 @@ void main() {
 
     group('Team Pre-selection Tests', () {
       late MockClient mockClient;
+      late AppDatabase testDb;
 
       final testEvent = Event(
         id: 'test-event',
@@ -298,10 +305,16 @@ void main() {
         color: '#1976D2',
       );
 
-      setUp(() {
-        // Set up test database
-        DatabaseService.setTestDatabase(createTestDatabase());
+      setUpAll(() {
+        // Create a single test database instance for the entire group
+        testDb = createTestDatabase();
+        DatabaseService.setTestDatabase(testDb);
+        
+        // Set up mock config for testing
+        ConfigService.setTestConfig();
+      });
 
+      setUp(() {
         // Mock HTTP client to avoid real API calls
         mockClient = MockClient();
         DataService.setHttpClient(mockClient);
@@ -320,8 +333,11 @@ void main() {
         DataService.resetHttpClient();
         ApiService.resetHttpClient();
         DataService.clearCache();
-        DatabaseService.clearTestDatabase();
         reset(mockClient);
+      });
+
+      tearDownAll(() {
+        DatabaseService.clearTestDatabase();
       });
 
       testWidgets('Should pre-select team when initialTeamId is provided',
